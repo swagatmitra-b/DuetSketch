@@ -2,44 +2,30 @@
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import { useToolBar } from "@/store";
-import Clear from "./Clear";
+import { Socket } from "socket.io-client";
 
-interface ImgData {
-  data?: Uint8ClampedArray;
-  colorSpace: PredefinedColorSpace;
-  height?: number;
-  width?: number;
-}
-
-interface PixelState {
-  undo: ImgData[];
-  redo: ImgData[];
-}
-
-const Canvas = () => {
+const Canvas = ({ socket }: { socket: Socket }) => {
   const [drawing, setDrawing] = useState(false);
-  const [pixelState, setPixelState] = useState<PixelState>({
-    undo: [],
-    redo: [],
-  });
-  const [undoCount, setUndoCount] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { tool, color, strokeSize } = useToolBar((state) => state);
 
   const startDrawing = (e: MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    ctx.lineCap = "round";
-    ctx.lineWidth = strokeSize;
-    ctx.strokeStyle = tool == "pen" ? color : "white";
-    ctx.beginPath();
-    ctx.lineTo(e.clientX, e.clientY);
-    ctx.stroke();
+    // const canvas = canvasRef.current as HTMLCanvasElement;
+    // const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    // ctx.lineCap = "round";
+    // ctx.lineWidth = strokeSize;
+    // ctx.strokeStyle = tool == "pen" ? color : "white";
+    // ctx.beginPath();
+    // ctx.lineTo(e.clientX, e.clientY);
+    // ctx.stroke();
     setDrawing(true);
-    if (pixelState.undo.length == 1) {
-      setPixelState({ ...pixelState, redo: [] });
-      setUndoCount(0);
-    }
+    const drawingInfo = {
+      type: "down",
+      color,
+      strokeSize,
+      position: { x: e.clientX, y: e.clientY },
+    };
+    socket.emit("drawing", drawingInfo, "down");
   };
 
   const draw = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -48,69 +34,41 @@ const Canvas = () => {
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     ctx.lineTo(e.clientX, e.clientY);
     ctx.stroke();
+    const drawingInfo = {
+      type: "move",
+      color,
+      strokeSize,
+      position: { x: e.clientX, y: e.clientY },
+    };
+    socket.emit("drawing", drawingInfo);
   };
 
   const stopDrawing = () => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    setPixelState({
-      redo: [
-        ...pixelState.redo,
-        ctx.getImageData(0, 0, canvas.width, canvas.height),
-      ],
-      undo: [
-        ...pixelState.undo,
-        ctx.getImageData(0, 0, canvas.width, canvas.height),
-      ],
-    });
     setDrawing(false);
+    socket.emit("stopped", "stop");
   };
 
   const wipe = () => {
     const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
-    setPixelState({
-      ...pixelState,
-      undo: [ctx.getImageData(0, 0, canvas.width, canvas.height)],
-    });
   };
 
   useEffect(wipe, []);
 
-  const undoCanvas = () => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    const { undo, redo } = pixelState;
-    if (undoCount < redo.length) setUndoCount(undoCount + 1);
-    const prevState = undo[undo.length - 2];
-    if (undo.length == 1) {
-      wipe();
-      return;
-    }
-    undo.length != 2
-      ? setPixelState((prev) => ({
-          ...prev,
-          undo: prev.undo.filter((state) => state != prevState),
-        }))
-      : setPixelState((prev) => ({
-          ...prev,
-          undo: [prev.undo[0]],
-        }));
-    ctx.putImageData(prevState as ImageData, 0, 0);
-  };
-
-  const redoCanvas = () => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    const { redo } = pixelState;
-    if (redo.length - undoCount > redo.length - 1) return;
-    const nextState = redo[redo.length - undoCount];
-    setPixelState({ ...pixelState, undo: pixelState.redo });
-    if (undoCount > 0) setUndoCount(undoCount - 1);
-    ctx.putImageData(nextState as ImageData, 0, 0);
-  };
+  useEffect(() => {
+    socket.on("receive-drawing", (canvasState) => {
+      console.log("receiving data", canvasState);
+      const canvas = canvasRef.current as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = canvasState.color;
+      ctx.lineWidth = canvasState.strokeSize;
+      ctx.beginPath();
+      ctx.lineTo(canvasState.position.x, canvasState.position.y);
+      ctx.stroke();
+    });
+  }, []);
 
   return (
     <div>
@@ -120,7 +78,6 @@ const Canvas = () => {
         onMouseMove={draw}
         onMouseUp={stopDrawing}
       ></canvas>
-      <Clear wipe={wipe} undoCanvas={undoCanvas} redoCanvas={redoCanvas} />
     </div>
   );
 };
