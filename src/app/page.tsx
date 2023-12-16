@@ -6,10 +6,10 @@ import Toolbar from "../components/Toolbar";
 import Canvas from "@/components/Canvas";
 
 export default function Home() {
-  const [socket, setSocket] = useState<Socket>(io("http://localhost:3002"));
+  const [socket, setSocket] = useState<Socket>(io("https://duetsketch-server.onrender.com"));
 
   useEffect(() => {
-    let soc = io("http://localhost:3002");
+    let soc = io("https://duetsketch-server.onrender.com/");
     setSocket(soc);
     return () => {
       soc.disconnect();
