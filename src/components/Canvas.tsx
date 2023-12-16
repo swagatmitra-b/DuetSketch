@@ -30,10 +30,10 @@ const Canvas = ({ socket }: { socket: Socket }) => {
 
   const draw = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    ctx.lineTo(e.clientX, e.clientY);
-    ctx.stroke();
+    // const canvas = canvasRef.current as HTMLCanvasElement;
+    // const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    // ctx.lineTo(e.clientX, e.clientY);
+    // ctx.stroke();
     const drawingInfo = {
       type: "move",
       color,
@@ -64,7 +64,7 @@ const Canvas = ({ socket }: { socket: Socket }) => {
       ctx.lineCap = "round";
       ctx.strokeStyle = canvasState.color;
       ctx.lineWidth = canvasState.strokeSize;
-      ctx.beginPath();
+      // ctx.beginPath();
       ctx.lineTo(canvasState.position.x, canvasState.position.y);
       ctx.stroke();
     });
