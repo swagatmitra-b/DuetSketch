@@ -10,12 +10,12 @@ const Canvas = ({ socket }: { socket: Socket }) => {
   const { tool, color, strokeSize } = useToolBar((state) => state);
 
   const startDrawing = (e: MouseEvent<HTMLCanvasElement>) => {
-    // const canvas = canvasRef.current as HTMLCanvasElement;
-    // const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const canvas = canvasRef.current as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     // ctx.lineCap = "round";
     // ctx.lineWidth = strokeSize;
     // ctx.strokeStyle = tool == "pen" ? color : "white";
-    // ctx.beginPath();
+    ctx.beginPath();
     // ctx.lineTo(e.clientX, e.clientY);
     // ctx.stroke();
     setDrawing(true);
@@ -45,7 +45,7 @@ const Canvas = ({ socket }: { socket: Socket }) => {
 
   const stopDrawing = () => {
     setDrawing(false);
-    socket.emit("stopped", "stop");
+    socket.emit("stop");
   };
 
   const wipe = () => {
@@ -67,6 +67,12 @@ const Canvas = ({ socket }: { socket: Socket }) => {
       // ctx.beginPath();
       ctx.lineTo(canvasState.position.x, canvasState.position.y);
       ctx.stroke();
+    });
+    socket.on("stop", () => {
+      console.log("top stop");
+      const canvas = canvasRef.current as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+      ctx.beginPath();
     });
   }, []);
 
