@@ -8,19 +8,33 @@ const Clear = ({
   undoCanvas,
   redoCanvas,
   socket,
+  name,
 }: {
   roomId: string;
   socket: Socket;
+  name: string;
   wipe: () => void;
   undoCanvas: () => void;
   redoCanvas: () => void;
 }) => {
   return (
-    <div className="absolute bottom-2 left-3">
-      <button onClick={undoCanvas} className="p-2">
+    <div className="absolute bottom-2 left-3 bg-white rounded-md">
+      <button
+        onClick={() => {
+          socket.emit("undo", roomId, name);
+          undoCanvas();
+        }}
+        className="p-2"
+      >
         Undo
       </button>
-      <button onClick={redoCanvas} className="p-2">
+      <button
+        onClick={() => {
+          socket.emit("redo", roomId, name);
+          redoCanvas();
+        }}
+        className="p-2"
+      >
         Redo
       </button>
       <button

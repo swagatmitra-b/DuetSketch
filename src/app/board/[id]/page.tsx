@@ -12,7 +12,7 @@ import Leave from "@/components/Leave";
 
 export default function Board() {
   const { name } = useRoom((state) => state);
-  const [socket, setSocket] = useState<Socket>(io("https://duetsketch-server.onrender.com/"));
+  const [socket, setSocket] = useState<Socket>(io("https://duetsketch-server.onrender.com"));
   const { id } = useParams();
   const [roomId] = useState(+id);
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function Board() {
   };
 
   useEffect(() => {
-    let soc = io("https://duetsketch-server.onrender.com/");
+    let soc = io("https://duetsketch-server.onrender.com");
     // let soc = io("http://localhost:3001");
     setSocket(soc);
     if (!name) return;
@@ -41,8 +41,8 @@ export default function Board() {
         <div className="min-h-screen flex justify-center items-center">
           <Toolbar />
           <Room name={name} />
-          <Canvas socket={socket} id={roomId} />
-          <Leave leaveRoom={leaveRoom} />
+          <Canvas socket={socket} id={roomId} name={name} />
+          <Leave leaveRoom={leaveRoom} id={String(roomId)} />
         </div>
       )}
     </div>
