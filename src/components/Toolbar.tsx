@@ -1,6 +1,6 @@
 "use client";
 
-import { useToolBar } from "@/store";
+import { useToolBar } from "@/toolstore";
 import { useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { LuPencil } from "react-icons/lu";
@@ -16,7 +16,7 @@ const Toolbar = () => {
   return (
     <Draggable nodeRef={dragRef} disabled={disabled}>
       <div
-        className="absolute border-2 border-black rounded-md p-5 w-40 flex flex-col items-center bg-white"
+        className="absolute border-2 border-black rounded-md p-5 w-40 flex flex-col items-center bg-white z-10"
         ref={dragRef}
       >
         <input
