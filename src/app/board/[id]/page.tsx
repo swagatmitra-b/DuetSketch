@@ -13,6 +13,7 @@ import Leave from "@/components/Leave";
 export default function Board() {
   const { name } = useRoom((state) => state);
   const [socket, setSocket] = useState<Socket>(io(`${process.env.NEXT_PUBLIC_SERVER_URL}`));
+  // const [socket, setSocket] = useState<Socket>(io(`http://localhost:3001`));
   const { id } = useParams();
   const [roomId] = useState(+id);
   const router = useRouter();

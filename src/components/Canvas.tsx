@@ -127,7 +127,7 @@ const Canvas = ({
   const command = (message: string) => {
     setSentry(() => message);
     setShow(() => true);
-    setTimeout(() => setShow(false), 1800);
+    setTimeout(() => setShow(false), 1500);
   };
 
   useEffect(() => {

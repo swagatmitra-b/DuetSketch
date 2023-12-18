@@ -48,6 +48,7 @@ io.on("connection", (socket) => {
   });
   socket.on("leave", (room, user) => {
     let current = members.get(room) as string[];
+    if (!current) return;
     current = current.filter((mem) => mem != user);
     members.set(room, current);
     socket.leave(room);
@@ -66,6 +67,11 @@ io.on("connection", (socket) => {
     io.to(room).emit("mode", user);
   });
   socket.on("disco", (room, user) => {
+    let current = members.get(room) as string[];
+    if (!current) return;
+    current = current.filter((mem) => mem != user);
+    members.set(room, current);
+    socket.leave(room);
     io.to(room).emit("disco", user);
   });
 });

@@ -7,7 +7,7 @@ const Sentry = ({ message, show }: { message: string; show: boolean }) => {
   return (
     <div className="absolute top-2">
       <p
-        className={`text-lg ${
+        className={`text-md ${
           show
             ? "ease-in duration-150 opacity-1"
             : "ease-out duration-150 opacity-0"
