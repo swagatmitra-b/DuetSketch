@@ -2,18 +2,20 @@ import express from "express";
 import { createServer } from "http";
 import cors from "cors";
 import { Server } from "socket.io";
+import { configDotenv } from "dotenv";
 
+configDotenv();
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 
 const server = createServer(app);
-
+console.log(process.env.CLIENT_URL);
 const io = new Server(server, {
   cors: {
-    // origin: "https://duetsketch.netlify.app",
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL,
+    // origin: "http://localhost:3000",
     methods: "GET",
   },
 });
@@ -64,7 +66,7 @@ io.on("connection", (socket) => {
     io.to(room).emit("mode", user);
   });
   socket.on("disco", (room, user) => {
-    io.to(room).emit("disco", user)
+    io.to(room).emit("disco", user);
   });
 });
 

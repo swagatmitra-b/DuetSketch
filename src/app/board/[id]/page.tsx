@@ -12,8 +12,7 @@ import Leave from "@/components/Leave";
 
 export default function Board() {
   const { name } = useRoom((state) => state);
-  // const [socket, setSocket] = useState<Socket>(io("https://duetsketch-server.onrender.com"));
-  const [socket, setSocket] = useState<Socket>(io("http://localhost:3001"));
+  const [socket, setSocket] = useState<Socket>(io(`${process.env.NEXT_PUBLIC_SERVER_URL}`));
   const { id } = useParams();
   const [roomId] = useState(+id);
   const router = useRouter();
@@ -22,14 +21,14 @@ export default function Board() {
     socket.emit("leave", roomId.toString(), name);
     router.push("/");
   };
- 
+
   window.addEventListener("beforeunload", () => {
     socket.emit("disco", roomId.toString(), name);
   });
 
   useEffect(() => {
-    // let soc = io("https://duetsketch-server.onrender.com");
-    let soc = io("http://localhost:3001");
+    let soc = io(`${process.env.NEXT_PUBLIC_SERVER_URL}`);
+    // let soc = io("http://localhost:3001");
     setSocket(soc);
     if (!name) return;
     socket.emit("room", roomId.toString(), name);
