@@ -32,7 +32,15 @@ const Join = () => {
   const joinRoom = (id: number) => {
     if (!name) {
       setActionText({ ...actionText, join: "Please enter a name" });
-      setInterval(
+      setTimeout(
+        () => setActionText({ ...actionText, join: "Join Room" }),
+        1000
+      );
+      return;
+    }
+    if (name && !roomId && !id) {
+      setActionText({ ...actionText, join: "Please enter a RoomID" });
+      setTimeout(
         () => setActionText({ ...actionText, join: "Join Room" }),
         1000
       );
@@ -50,7 +58,7 @@ const Join = () => {
   };
 
   return (
-    <div className="p-3 flex flex-col gap-2 border border-black rounded-md">
+    <div className="p-5 flex flex-col gap-4 border border-black rounded-md">
       <div className="flex flex-col gap-2">
         <h2>Enter Name</h2>
         <input
@@ -71,13 +79,13 @@ const Join = () => {
         />
       </div>
       <button
-        className="p-2 border border-black rounded-md"
+        className="p-2 border border-black rounded-md hover:bg-black hover:text-white ease-in duration-150"
         onClick={createRoom}
       >
         {actionText.create}
       </button>
       <button
-        className="p-2 border border-black rounded-md"
+        className="p-2 border border-black rounded-md hover:bg-black hover:text-white ease-in duration-150"
         onClick={() => joinRoom(1)}
       >
         {actionText.join}

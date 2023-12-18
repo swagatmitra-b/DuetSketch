@@ -1,5 +1,3 @@
-"use client";
-
 import { MouseEvent } from "react";
 
 const Leave = ({ leaveRoom, id }: { leaveRoom: () => void; id: string }) => {
@@ -10,7 +8,7 @@ const Leave = ({ leaveRoom, id }: { leaveRoom: () => void; id: string }) => {
     setTimeout(() => (button.innerText = "Share RoomID"), 1500);
   };
   return (
-    <div className="absolute bottom-2 right-3 bg-white flex gap-2 rounded-md">
+    <div className="absolute bottom-2 right-3 bg-white flex gap-2 rounded-md px-2">
       <button className="p-2 rounded-md" onClick={copyID}>
         Share RoomID
       </button>

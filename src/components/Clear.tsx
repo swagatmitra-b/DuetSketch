@@ -1,28 +1,19 @@
-"use client";
-
 import { Socket } from "socket.io-client";
 
 const Clear = ({
   roomId,
-  wipe,
-  undoCanvas,
-  redoCanvas,
   socket,
   name,
 }: {
   roomId: string;
   socket: Socket;
   name: string;
-  wipe: () => void;
-  undoCanvas: () => void;
-  redoCanvas: () => void;
 }) => {
   return (
-    <div className="absolute bottom-2 left-3 bg-white rounded-md">
+    <div className="absolute bottom-2 left-3 bg-white rounded-md px-2">
       <button
         onClick={() => {
           socket.emit("undo", roomId, name);
-          undoCanvas();
         }}
         className="p-2"
       >
@@ -31,7 +22,6 @@ const Clear = ({
       <button
         onClick={() => {
           socket.emit("redo", roomId, name);
-          redoCanvas();
         }}
         className="p-2"
       >
@@ -40,8 +30,7 @@ const Clear = ({
       <button
         className="p-3"
         onClick={() => {
-          socket.emit("wipe", roomId);
-          wipe();
+          socket.emit("wipe", roomId, name);
         }}
       >
         Clear Canvas

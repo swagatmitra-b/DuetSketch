@@ -1,14 +1,17 @@
-import React from "react";
+"use client";
 
-const Sentry = ({ message }: { message: string }) => {
+import { useRoom } from "@/userstore";
+
+const Sentry = ({ message, show }: { message: string; show: boolean }) => {
+  const mode = useRoom((state) => state.mode);
   return (
     <div className="absolute top-2">
       <p
         className={`text-lg ${
-          message
-            ? "ease-in duration-100 opacity-1"
-            : "ease-out duration-100 opacity-0"
-        }`}
+          show
+            ? "ease-in duration-150 opacity-1"
+            : "ease-out duration-150 opacity-0"
+        } ${mode ? "text-white" : ""}`}
       >
         {message}
       </p>

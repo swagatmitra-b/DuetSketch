@@ -7,7 +7,8 @@ import { useRoom } from "@/userstore";
 import { drawingInfoType } from "@/types";
 import { PixelStateType } from "@/types";
 import Clear from "@/components/Clear";
-import Sentry from "./Sentry";
+import Sentry from "@/components/Sentry";
+import Switch from "@/components/Switch";
 
 const Canvas = ({
   socket,
@@ -19,10 +20,13 @@ const Canvas = ({
   name: string;
 }) => {
   const [drawing, setDrawing] = useState(false);
+  const [show, setShow] = useState(false);
   const [sentry, setSentry] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { tool, color, strokeSize } = useToolBar((state) => state);
-  const { members, setMembers } = useRoom((state) => state);
+  const { setStatus, removeStatus, setMembers, mode, setMode } = useRoom(
+    (state) => state
+  );
   const [pixelState, setPixelState] = useState<PixelStateType>({
     undo: [],
     redo: [],
@@ -43,7 +47,7 @@ const Canvas = ({
       strokeSize,
       position: { x: e.clientX, y: e.clientY },
     };
-    socket.emit("start", drawingInfo, id.toString());
+    socket.emit("start", drawingInfo, id.toString(), name);
   };
 
   const draw = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -60,20 +64,23 @@ const Canvas = ({
 
   const stopDrawing = () => {
     setDrawing(false);
-    socket.emit("stop", id.toString());
+    socket.emit("stop", id.toString(), name);
   };
 
   const wipe = () => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d", {
-      willReadFrequently: true,
-    }) as CanvasRenderingContext2D;
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-    setPixelState((prevState) => ({
-      ...prevState,
-      undo: [ctx.getImageData(0, 0, canvas.width, canvas.height)],
-    }));
+    setPixelState((prevState) => {
+      const canvas = canvasRef.current as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d", {
+        willReadFrequently: true,
+      }) as CanvasRenderingContext2D;
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+
+      return {
+        ...prevState,
+        undo: [ctx.getImageData(0, 0, canvas.width, canvas.height)],
+      };
+    });
   };
 
   const undoCanvas = () => {
@@ -88,7 +95,7 @@ const Canvas = ({
       const prevState = undo[undo.length - 2];
       const newUndo = undo.slice(0, -1);
 
-      if (undoCount < redo.length) setUndoCount(undoCount + 1);
+      if (undoCount < redo.length) setUndoCount((prev) => prev + 1);
 
       const canvas = canvasRef.current as HTMLCanvasElement;
       const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -102,13 +109,10 @@ const Canvas = ({
     setPixelState((prevPixelState) => {
       const { redo } = prevPixelState;
 
-      console.log(undoCount, redo.length);
-
       if (redo.length === 0 || undoCount >= redo.length) {
         return prevPixelState;
       }
 
-      console.log("passed");
       const nextState = redo[redo.length - undoCount - 1];
 
       const canvas = canvasRef.current as HTMLCanvasElement;
@@ -120,10 +124,15 @@ const Canvas = ({
     });
   };
 
-  useEffect(wipe, []);
+  const command = (message: string) => {
+    setSentry(() => message);
+    setShow(() => true);
+    setTimeout(() => setShow(false), 1800);
+  };
 
   useEffect(() => {
-    const startListener = (canvasState: drawingInfoType) => {
+    wipe();
+    const startListener = (canvasState: drawingInfoType, user: string) => {
       const canvas = canvasRef.current as HTMLCanvasElement;
       const ctx = canvas.getContext("2d", {
         willReadFrequently: true,
@@ -134,12 +143,13 @@ const Canvas = ({
       ctx.lineWidth = canvasState.strokeSize;
       ctx.lineTo(canvasState.position.x, canvasState.position.y);
       ctx.stroke();
+      setStatus(user);
       if (pixelState.undo.length == 1) {
         setPixelState((prevState) => ({
           ...prevState,
           redo: [],
         }));
-        setUndoCount(0);
+        setUndoCount((_) => 0);
       }
     };
     const receiveListener = (canvasState: drawingInfoType) => {
@@ -147,16 +157,18 @@ const Canvas = ({
       const ctx = canvas.getContext("2d", {
         willReadFrequently: true,
       }) as CanvasRenderingContext2D;
+      ctx.strokeStyle = canvasState.tool == "pen" ? canvasState.color : "white";
       ctx.lineTo(canvasState.position.x, canvasState.position.y);
       ctx.stroke();
     };
 
-    const stopListener = () => {
+    const stopListener = (user: string) => {
       const canvas = canvasRef.current as HTMLCanvasElement;
       const ctx = canvas.getContext("2d", {
         willReadFrequently: true,
       }) as CanvasRenderingContext2D;
       ctx.beginPath();
+      removeStatus(user);
       setPixelState((prevState) => ({
         ...prevState,
         redo: [
@@ -173,30 +185,32 @@ const Canvas = ({
     socket.on("start-drawing", startListener);
     socket.on("receive-drawing", receiveListener);
     socket.on("stop-drawing", stopListener);
-    socket.on("join", (room, user, members) => {
+    socket.on("join", (user, members) => {
       setMembers(members);
-      setSentry(`${user} has joined the room`);
-      setTimeout(() => setSentry(""), 2000);
+      command(`${user} has joined the room`);
     });
-    socket.on("leave-room", (room, user, members) => {
+    socket.on("leave-room", (user, members) => {
       setMembers(members);
-      setSentry(`${user} has left the room`);
-      setTimeout(() => setSentry(""), 2000);
+      command(`${user} has left the room`);
     });
-    socket.on("wipe-drawing", () => {
+    socket.on("wipe-drawing", (user) => {
       wipe();
+      command(`${user} has cleared the canvas`);
     });
-    socket.on("undo-drawing", (message) => {
-      console.log(name, message);
-      if (message == name) return;
-      console.log("undid");
+    socket.on("undo-drawing", (user) => {
       undoCanvas();
+      command(`${user} has undone`);
     });
-    socket.on("redo-drawing", (message) => {
-      console.log(name, message);
-      // if (message == name) return;
-      console.log("redo");
+    socket.on("redo-drawing", (user) => {
       redoCanvas();
+      command(`${user} has redone`);
+    });
+    socket.on("disco", (user) => {
+      command(`${user} has been disconnected :(`);
+    });
+    socket.on("mode", (user) => {
+      setMode();
+      command(`${user} has changed mode`);
     });
 
     return () => {
@@ -205,10 +219,6 @@ const Canvas = ({
     };
   }, []);
 
-  useEffect(() => {
-    console.log(pixelState);
-  }, [pixelState]);
-
   return (
     <div className="flex justify-center">
       <canvas
@@ -216,16 +226,11 @@ const Canvas = ({
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
+        className={`${mode ? "bg-black" : ""}`}
       ></canvas>
-      <Clear
-        wipe={wipe}
-        undoCanvas={undoCanvas}
-        redoCanvas={redoCanvas}
-        socket={socket}
-        roomId={id.toString()}
-        name={name}
-      />
-      <Sentry message={sentry} />
+      <Clear socket={socket} roomId={id.toString()} name={name} />
+      <Switch mode={mode} socket={socket} roomId={id.toString()} name={name} />
+      <Sentry message={sentry} show={show} />
     </div>
   );
 };
