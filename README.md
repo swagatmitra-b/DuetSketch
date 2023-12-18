@@ -1,1 +1,1 @@
-#### A sketching app for you and your friends
+#### A sketching app 
