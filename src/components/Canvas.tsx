@@ -195,7 +195,7 @@ const Canvas = ({
     });
     socket.on("wipe-drawing", (user) => {
       wipe();
-      command(`${user} has cleared the canvas`);
+      command(`${user} cleared the canvas`);
     });
     socket.on("undo-drawing", (user) => {
       undoCanvas();
