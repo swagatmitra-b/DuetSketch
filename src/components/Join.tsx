@@ -58,7 +58,7 @@ const Join = () => {
   };
 
   return (
-    <div className="p-5 flex flex-col gap-4 border border-black rounded-md">
+    <div className="p-5 flex flex-col gap-4 border-2 border-black rounded-md">
       <div className="flex flex-col gap-2">
         <h2>Enter Name</h2>
         <input
