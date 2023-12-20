@@ -188,9 +188,9 @@ const Canvas = ({
     socket.on("receive-drawing", receiveListener);
     socket.on("stop-drawing", stopListener);
     socket.on("join", (user, members) => {
-        setLoader(false);
-        setMembers(members);
-        command(`${user} has joined the room`);
+      setLoader(false);
+      setMembers(members);
+      command(`${user} has joined the room`);
     });
     socket.on("leave-room", (user, members) => {
       setMembers(members);
@@ -226,9 +226,9 @@ const Canvas = ({
     <div className="flex justify-center">
       <canvas
         ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
+        onPointerDown={startDrawing}
+        onPointerMove={draw}
+        onPointerUp={stopDrawing}
         className={`${mode ? "bg-black" : ""}`}
       ></canvas>
       <Clear socket={socket} roomId={id.toString()} name={name} />
