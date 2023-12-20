@@ -12,8 +12,10 @@ import Leave from "@/components/Leave";
 
 export default function Board() {
   const { name } = useRoom((state) => state);
-  const [socket, setSocket] = useState<Socket>(io(`${process.env.NEXT_PUBLIC_SERVER_URL}`));
-  // const [socket, setSocket] = useState<Socket>(io(`http://localhost:3001`));
+  const [socket, setSocket] = useState<Socket>(
+    io(`${process.env.NEXT_PUBLIC_SERVER_URL}`)
+  );
+  const [loader, setLoader] = useState(true);
   const { id } = useParams();
   const [roomId] = useState(+id);
   const router = useRouter();
@@ -29,7 +31,6 @@ export default function Board() {
 
   useEffect(() => {
     let soc = io(`${process.env.NEXT_PUBLIC_SERVER_URL}`);
-    // let soc = io("http://localhost:3001");
     setSocket(soc);
     if (!name) return;
     socket.emit("room", roomId.toString(), name);
@@ -45,8 +46,8 @@ export default function Board() {
       {name && (
         <div className="min-h-screen flex justify-center items-center">
           <Toolbar />
-          <Room name={name} />
-          <Canvas socket={socket} id={roomId} name={name} />
+          <Room name={name} loader={loader}/>
+          <Canvas socket={socket} id={roomId} name={name} setLoader={setLoader} />
           <Leave leaveRoom={leaveRoom} id={String(roomId)} />
         </div>
       )}

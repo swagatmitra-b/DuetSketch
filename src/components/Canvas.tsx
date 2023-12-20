@@ -14,10 +14,12 @@ const Canvas = ({
   socket,
   id,
   name,
+  setLoader,
 }: {
   socket: Socket;
   id: number;
   name: string;
+  setLoader: (a: boolean) => void;
 }) => {
   const [drawing, setDrawing] = useState(false);
   const [show, setShow] = useState(false);
@@ -186,8 +188,9 @@ const Canvas = ({
     socket.on("receive-drawing", receiveListener);
     socket.on("stop-drawing", stopListener);
     socket.on("join", (user, members) => {
-      setMembers(members);
-      command(`${user} has joined the room`);
+        setLoader(false);
+        setMembers(members);
+        command(`${user} has joined the room`);
     });
     socket.on("leave-room", (user, members) => {
       setMembers(members);
